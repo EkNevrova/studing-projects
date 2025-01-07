@@ -1,46 +1,32 @@
 package ru.eknevrova.project11.task3;
 
 // Создайте программу, которая считает сумму квадратов первых N натуральных чисел, используя многопоточность.
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Scanner;
 
 public class Task3 {
-    public static void main(String[] args) throws InterruptedException {
-        int N = 100; // Суммируем квадраты первых N чисел
-        int numberOfThreads = 4; // Количество потоков
-        int range = N / numberOfThreads; // Диапазон чисел для каждого потока
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Введите значение N: ");
+        int N = scanner.nextInt();
+        int mid = N / 2; // используем 2 потока
 
-        List<Thread> threads = new ArrayList<>();
-        List<SquareSum> tasks = new ArrayList<>();
+        SumAction taskFirst = new SumAction(1, mid);
+        SumAction taskSecond = new SumAction(mid + 1, N);
 
-        // Создаем задачи и потоки
-        for (int i = 0; i < numberOfThreads; i++) {
-            int start = i * range + 1;
-            int end = (i == numberOfThreads - 1) ? N : start + range - 1;
+        Thread firstThread = new Thread(taskFirst);
+        Thread secondTthread = new Thread(taskSecond);
 
-            SquareSum task = new SquareSum(start, end);
-            tasks.add(task);
-            Thread thread = new Thread(task);
-            threads.add(thread);
+        firstThread.start();
+        secondTthread.start();
+
+        try {
+            firstThread.join();
+            secondTthread.join();
+        } catch (InterruptedException e) {
+            System.out.println("Поток прерван: " + e.getMessage());
         }
 
-        // Запускаем потоки
-        for (Thread thread : threads) {
-            thread.start();
-        }
-
-        // Ожидаем завершения потоков
-        for (Thread thread : threads) {
-            thread.join();
-        }
-
-        // Суммируем результаты
-        long totalSum = 0;
-        for (SquareSum task : tasks) {
-            totalSum += task.getPartialSum();
-        }
-
-        System.out.println("Сумма квадратов первых " + N + " чисел: " + totalSum);
+        long totalSum = taskFirst.getResult() + taskSecond.getResult();
+            System.out.println("Сумма квадратов первых " + N + " натуральных чисел: " + totalSum);
     }
 }
